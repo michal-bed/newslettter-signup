@@ -8,7 +8,13 @@ const bodyParser = require("body-parser");
 const https = require("https");
 const { formatWithOptions } = require("util");
 
+const { JSDOM } = require( "jsdom" );
+
 const app = express();
+
+var { window } = new JSDOM ( "" );
+// var $;
+var $ = require( "jquery" )( window );
 
 app.use(bodyParser.urlencoded({extended : true}));
 app.use(express.static("public"));
@@ -40,15 +46,168 @@ async function runMailchimp(subscribingUser, res)
         FNAME: subscribingUser.firstName,
         LNAME: subscribingUser.lastName
         }
-    });
+    })
   }
-  catch 
+    // .then
+    // (
+    //     function()
+    //     {
+    //         console.log(
+    //             `Successfully added contact as an audience member. The contact's id is ${
+    //             response.id
+    //             }. Response's status: ${response.status}.`
+    //         );
+        
+    //     //res.send("Successfully subscribed.");
+    //     res.sendFile(__dirname + "/success.html");
+        
+    //     }
+    // )
+    // .catch
+    // (
+    //     function()
+    //     {
+    //         console.log("Problem with mailChimp request.");
+    //         console.log(e);
+    //         console.log("Status", e.status);
+    //         console.log("Failed to add a contact to the subscribing list. Try again later.");
+    //         // res.send("There was an error with signing up, please try again later!");
+    //         if (e.status === 400)
+    //         {
+    //             // const failureFile = new File(__dirname + "/failure.html");
+    //             //const failureFile = new Blob()
+    //             //const { window } = new JSDOM( failureFile );
+    //             const options = 
+    //                 { 
+    //                     contentType: 'text/html',
+    //                     resources: 'usable',
+    //                     runScripts: 'dangerously'
+    //                 };
+
+    //             var window; 
+    //             JSDOM.fromFile(__dirname + "/failure.html", options).
+    //                                 then
+    //                                 (//(dom) => 
+    //                                     function(dom)
+    //                                     { 
+    //                                         try 
+    //                                         { 
+    //                                             window = dom.window;
+    //                                         }
+    //                                         catch (e)
+    //                                         {
+    //                                             console.log("Error:");
+    //                                             console.log(e);
+    //                                             console.log("Status:");
+    //                                             console.log(e.status);
+    //                                             return;
+    //                                         }
+    //                                     } 
+    //                                 )
+    //                                 .catch 
+    //                                 (
+    //                                     function ()
+    //                                     {
+    //                                         console.log("Promise Rejected");
+    //                                     }
+    //                                 );
+
+    //             const $ = require( "jquery" )( window );
+
+    //             jsonText = JSON.parse(e.response.text);
+    //             var detail = jsonText.detail;
+    //             console.log(detail);
+    //             const errorInfo = "There was a problem signing you up. " + 
+    //                             detail.split(". ")[0] + ".";
+    //             console.log(errorInfo);
+    //             // $(".lead").textContent = errorInfo;
+    //             // res.send(__dirname + "/failure.html");
+    //             return;
+
+    //         }
+    //         res.sendFile(__dirname + "/failure.html");
+    //         return;
+    //     }
+    // );
+
+  catch (e)
   {
+    console.log(e);
+    console.log("Status", e.status);
     console.log("Failed to add a contact to the subscribing list. Try again later.");
     // res.send("There was an error with signing up, please try again later!");
-    res.sendFile(__dirname + "/failure.html");
-    return;
-  }
+    if (e.status === 400)
+    {
+        // const failureFile = new File(__dirname + "/failure.html");
+        //const failureFile = new Blob()
+        //const { window } = new JSDOM( failureFile );
+        const options = 
+            { 
+                contentType: 'text/html',
+                resources: 'usable',
+                runScripts: 'dangerously'
+            };
+
+        console.log("I am before local window declaration");
+        // var { window } = new JSDOM ( "" ); 
+
+        // var $;
+        // var window;
+        JSDOM.fromFile(__dirname + "/failure.html", options).
+                            then
+                            (//(dom) => 
+                                function(dom)
+                                { 
+                                    try 
+                                    { 
+                                        window = dom.window;
+                                        $ = require( "jquery" )( window );
+                                        console.log("window");
+                                        console.log(window);
+                                        console.log("$");
+                                        console.log($);
+
+                                        jsonText = JSON.parse(e.response.text);
+                                        var detail = jsonText.detail;
+                                        console.log(detail);
+                                        const errorInfo = "There was a problem signing you up. " + 
+                                                        detail.split(". ")[0] + ".";
+                                        console.log(errorInfo);
+                                        $(".lead").text(function() { return  errorInfo; });
+                                        console.log($(".lead").text());
+                                        // res.send($("html"));
+                                        res.send($("html").html());
+                                        return;
+                                    }
+                                    catch (e)
+                                    {
+                                        console.log("Error:");
+                                        console.log(e);
+                                        console.log("Status:");
+                                        console.log(e.status);
+                                        return;
+                                    }
+                                } 
+                            )
+                            .catch 
+                            (
+                                function ()
+                                {
+                                    console.log("Promise Rejected");
+                                }
+                            );
+        console.log("I am after JSDOM.fromFile and before $ declaration");
+        // const $ = require( "jquery" )( window );
+
+        
+
+    }
+    else 
+    {
+        res.sendFile(__dirname + "/failure.html");
+        return;
+    }
+}
 
   console.log(
     `Successfully added contact as an audience member. The contact's id is ${
