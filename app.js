@@ -16,7 +16,7 @@ const express = require("express");
 // const request = require("request"); // <= deprecated
 const https = require("https");
 const ejs = require("ejs");
-var util = require('util');
+const { formatWithOptions } = require("util");
 
 const { JSDOM } = require( "jsdom" );
 
