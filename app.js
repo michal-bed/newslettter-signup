@@ -77,9 +77,6 @@ async function runMailchimp(subscribingUser, res)
     // res.send("There was an error with signing up, please try again later!");
     if (e.status === 400)
     {
-        // const failureFile = new File(__dirname + "/failure.html");
-        //const failureFile = new Blob()
-        //const { window } = new JSDOM( failureFile );
         const options = 
             { 
                 contentType: 'text/html',
@@ -263,7 +260,7 @@ app.post("/",
         // we can avoid much configuring request stuff
         // so I commented out the other way below and use this function
         // Also runMailchimp was later updated to handle 'Bad Request' error
-        // But the other function wasn't
+        // But the other function wasn't.
         // Moreover, it checks the status of response to POST request which doesn't seem to be 
         // completely right. It seems to pass seemingly 'succesfully' data which contain error info in the 
         // response's data field
@@ -271,6 +268,11 @@ app.post("/",
         // errors field in the response's data - it is logged in the console to help check the data
         // You can check an invalid email address like for example 'mich@b' another option it to check it
         // adding duplicated email address. It also should return errors object...
+        // I've already remodeled the app so that it works like I explained above
+        // So now there are two functions that works similarly. 
+        // One uses native Node https module, the other uses a module provided by mailchimp
+        // One uses jQuery to render pages,
+        // the other uses ejs templates
         // runMailchimp(subscribingUser, res);
 
         sendPostRequest(subscribingUser, res);
