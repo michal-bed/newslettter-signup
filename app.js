@@ -1,12 +1,22 @@
-// "type" : "module"
 // import mailchimp from "@mailchimp/mailchimp_marketing";
+
+
+const result = require('dotenv').config();
+ 
+if (result.error) {
+  throw result.error
+}
+ 
+console.log(result.parsed)
+
 const mailchimp = require("@mailchimp/mailchimp_marketing");
 
 const express = require("express");
-const bodyParser = require("body-parser");
+// const bodyParser = require("body-parser");
 // const request = require("request"); // <= deprecated
 const https = require("https");
-const { formatWithOptions } = require("util");
+const ejs = require("ejs");
+var util = require('util');
 
 const { JSDOM } = require( "jsdom" );
 
@@ -16,11 +26,16 @@ var { window } = new JSDOM ( "" );
 // var $;
 var $ = require( "jquery" )( window );
 
-app.use(bodyParser.urlencoded({extended : true}));
+app.use(express.urlencoded({extended : true}));
 app.use(express.static("public"));
+app.set("view engine", "ejs");
 
 const listId = "6490073db7";
 const apiKey = "967c905bd5715c7e7990bd8a38fdbe1d-us1";
+
+// const listId = process.env.LIST_ID;
+// const apiKey = process.env.API_KEY;
+console.log(listId, apiKey);
 mailchimp.setConfig({
   apiKey: apiKey,
   server: "us1",
@@ -35,11 +50,11 @@ checkMailchimp();
 
 async function runMailchimp(subscribingUser, res) 
 {
-  var response = undefined;
+  // var response = undefined;
   
   try
   {
-    response = await mailchimp.lists.addListMember(listId, {
+    const response = await mailchimp.lists.addListMember(listId, {
         email_address: subscribingUser.email,
         status: "subscribed",
         merge_fields: {
@@ -47,89 +62,16 @@ async function runMailchimp(subscribingUser, res)
         LNAME: subscribingUser.lastName
         }
     })
+
+    console.log(
+        `Successfully added contact as an audience member. The contact's id is ${
+          response.id
+        }. Response's status: ${response.status}.`
+      );
+      
+      //res.send("Successfully subscribed.");
+      res.sendFile(__dirname + "/success.html");
   }
-    // .then
-    // (
-    //     function()
-    //     {
-    //         console.log(
-    //             `Successfully added contact as an audience member. The contact's id is ${
-    //             response.id
-    //             }. Response's status: ${response.status}.`
-    //         );
-        
-    //     //res.send("Successfully subscribed.");
-    //     res.sendFile(__dirname + "/success.html");
-        
-    //     }
-    // )
-    // .catch
-    // (
-    //     function()
-    //     {
-    //         console.log("Problem with mailChimp request.");
-    //         console.log(e);
-    //         console.log("Status", e.status);
-    //         console.log("Failed to add a contact to the subscribing list. Try again later.");
-    //         // res.send("There was an error with signing up, please try again later!");
-    //         if (e.status === 400)
-    //         {
-    //             // const failureFile = new File(__dirname + "/failure.html");
-    //             //const failureFile = new Blob()
-    //             //const { window } = new JSDOM( failureFile );
-    //             const options = 
-    //                 { 
-    //                     contentType: 'text/html',
-    //                     resources: 'usable',
-    //                     runScripts: 'dangerously'
-    //                 };
-
-    //             var window; 
-    //             JSDOM.fromFile(__dirname + "/failure.html", options).
-    //                                 then
-    //                                 (//(dom) => 
-    //                                     function(dom)
-    //                                     { 
-    //                                         try 
-    //                                         { 
-    //                                             window = dom.window;
-    //                                         }
-    //                                         catch (e)
-    //                                         {
-    //                                             console.log("Error:");
-    //                                             console.log(e);
-    //                                             console.log("Status:");
-    //                                             console.log(e.status);
-    //                                             return;
-    //                                         }
-    //                                     } 
-    //                                 )
-    //                                 .catch 
-    //                                 (
-    //                                     function ()
-    //                                     {
-    //                                         console.log("Promise Rejected");
-    //                                     }
-    //                                 );
-
-    //             const $ = require( "jquery" )( window );
-
-    //             jsonText = JSON.parse(e.response.text);
-    //             var detail = jsonText.detail;
-    //             console.log(detail);
-    //             const errorInfo = "There was a problem signing you up. " + 
-    //                             detail.split(". ")[0] + ".";
-    //             console.log(errorInfo);
-    //             // $(".lead").textContent = errorInfo;
-    //             // res.send(__dirname + "/failure.html");
-    //             return;
-
-    //         }
-    //         res.sendFile(__dirname + "/failure.html");
-    //         return;
-    //     }
-    // );
-
   catch (e)
   {
     console.log(e);
@@ -162,8 +104,8 @@ async function runMailchimp(subscribingUser, res)
                                     { 
                                         window = dom.window;
                                         $ = require( "jquery" )( window );
-                                        console.log("window");
-                                        console.log(window);
+                                        // console.log("window");
+                                        // console.log(window);
                                         console.log("$");
                                         console.log($);
 
@@ -196,7 +138,7 @@ async function runMailchimp(subscribingUser, res)
                                     console.log("Promise Rejected");
                                 }
                             );
-        console.log("I am after JSDOM.fromFile and before $ declaration");
+        // console.log("I am after JSDOM.fromFile and before $ declaration");
         // const $ = require( "jquery" )( window );
 
         
@@ -207,16 +149,8 @@ async function runMailchimp(subscribingUser, res)
         res.sendFile(__dirname + "/failure.html");
         return;
     }
-}
+  }
 
-  console.log(
-    `Successfully added contact as an audience member. The contact's id is ${
-      response.id
-    }. Response's status: ${response.status}.`
-  );
-  
-  //res.send("Successfully subscribed.");
-  res.sendFile(__dirname + "/success.html");
 }
 
 function sendPostRequest(subscribingUser, res)
@@ -248,28 +182,62 @@ function sendPostRequest(subscribingUser, res)
     const request = https.request(url, options, 
         function(response)
         {
-            if (response.statusCode === 200)
-            {
-               console.log("Successfully subscribed.");
-               res.send("Successfully subscribed.");
-            }
-            else
-            {
-                console.log("There was an error with signing up, please try again later!");
-                res.send("There was an error with signing up, please try again later!");
-            }
+            //console.log("response", response);
 
             response.on("data",
                 function(data)
                 {
-                    console.log(JSON.parse(data));
+                    console.log("response data:", JSON.parse(data));
+                    const errors = JSON.parse(data).errors;
+                    console.log("errors:", errors);
+
+                    if (!errors.length)
+                    {
+                        console.log("Successfully subscribed.");
+                        //res.send("Successfully subscribed.");
+                        res.sendFile(__dirname + "/success.html");
+                    }
+                    else
+                    {
+                        let errorInfo = "";
+                        let count = 1;
+                        for (const error of errors)
+                        {
+                            if (error.error_code === 'ERROR_GENERIC')
+                            {
+                                errorInfo += error.error;
+                                if (errors.length > 1 && count < errors.length)
+                                {
+                                    errorInfo += " ";
+                                }
+                            }
+                            else if (error.error_code === 'ERROR_CONTACT_EXISTS')
+                            {
+                                errorInfo += (error.email_address + ' is already a list member.');
+                                if (errors.length > 1 && count < errors.length)
+                                {
+                                    errorInfo += " ";
+                                }
+                            }
+                            ++count;
+                        }
+
+                        console.log("There was an error with signing up, please try again later!");
+                        //res.send("There was an error with signing up, please try again later!");
+                        console.log("errorInfo:", errorInfo);
+                        res.render("failure", {addInfo: errorInfo});
+                    }
+
                 }
             );
         }
     
     );
 
-    request.write(jsonData);
+    //console.log("request:", request);
+    console.log(jsonData);
+    // request.write(jsonData);
+    //console.log("request after udate:", request);
     request.end();
 }
 
@@ -297,9 +265,18 @@ app.post("/",
         // method using mailchimp module is schorter
         // we can avoid much configuring request stuff
         // so I commented out the other way below and use this function
-        runMailchimp(subscribingUser, res);
+        // Also runMailchimp was later updated to handle 'Bad Request' error
+        // But the other function wasn't
+        // Moreover, it checks the status of response to POST request which doesn't seem to be 
+        // completely right. It seems to pass seemingly 'succesfully' data which contain error info in the 
+        // response's data field
+        // All in all, it is better to avoid the sendPostRequest function or remodel it to check
+        // errors field in the response's data - it is logged in the console to help check the data
+        // You can check an invalid email address like for example 'mich@b' another option it to check it
+        // adding duplicated email address. It also should return errors object...
+        // runMailchimp(subscribingUser, res);
 
-        // sendPostRequest(subscribingUser, res);
+        sendPostRequest(subscribingUser, res);
     }
 );
 
