@@ -12,7 +12,7 @@ console.log(result.parsed)
 const mailchimp = require("@mailchimp/mailchimp_marketing");
 
 const express = require("express");
-// const bodyParser = require("body-parser");
+const bodyParser = require("body-parser");
 // const request = require("request"); // <= deprecated
 const https = require("https");
 const ejs = require("ejs");
@@ -236,7 +236,7 @@ function sendPostRequest(subscribingUser, res)
 
     //console.log("request:", request);
     console.log(jsonData);
-    // request.write(jsonData);
+    request.write(jsonData);
     //console.log("request after udate:", request);
     request.end();
 }
