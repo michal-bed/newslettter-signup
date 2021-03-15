@@ -107,7 +107,7 @@ async function runMailchimp(subscribingUser, res)
                                         var detail = jsonText.detail;
                                         console.log(detail);
                                         const errorInfo = "There was a problem signing you up. " + 
-                                                        detail.split(". ")[0] + ".";
+                                                        detail.split(/\. |, |\.$/)[0] + ".";
                                         console.log(errorInfo);
                                         $(".lead").text(function() { return  errorInfo; });
                                         console.log($(".lead").text());
@@ -197,17 +197,26 @@ function sendPostRequest(subscribingUser, res)
                         let count = 1;
                         for (const error of errors)
                         {
-                            if (error.error_code === 'ERROR_GENERIC')
+                            if (error.error_code === 'ERROR_GENERIC' && error.error)
                             {
-                                errorInfo += error.error;
+                                errorInfo += (error.error.split(/\. |, |\.$/)[0] + ".");
                                 if (errors.length > 1 && count < errors.length)
                                 {
                                     errorInfo += " ";
                                 }
                             }
-                            else if (error.error_code === 'ERROR_CONTACT_EXISTS')
+                            else if (error.error_code === 'ERROR_CONTACT_EXISTS' && error.error)
                             {
-                                errorInfo += (error.email_address + ' is already a list member.');
+                                // if (error.email_address)
+                                // {
+                                //     errorInfo += (error.email_address + ' is already a list member.');
+                                // }
+                                
+                                
+                                // console.log(error.error.split(/\. |, |\.$/);
+                                errorInfo += (error.error.split(/\. |, |\.$/)[0] + ".");
+                                console.log(errorInfo);
+
                                 if (errors.length > 1 && count < errors.length)
                                 {
                                     errorInfo += " ";
