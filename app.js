@@ -3,11 +3,11 @@
 
 const result = require('dotenv').config();
  
-if (result.error) {
-  throw result.error
-}
+// if (result.error) {
+//   throw result.error
+// }
  
-console.log(result.parsed)
+// console.log(result.parsed)
 
 const mailchimp = require("@mailchimp/mailchimp_marketing");
 
@@ -16,25 +16,22 @@ const bodyParser = require("body-parser");
 // const request = require("request"); // <= deprecated
 const https = require("https");
 const ejs = require("ejs");
-const { formatWithOptions } = require("util");
+// const { formatWithOptions } = require("util");
 
 const { JSDOM } = require( "jsdom" );
 
 const app = express();
 
 var { window } = new JSDOM ( "" );
-// var $;
 var $ = require( "jquery" )( window );
 
 app.use(express.urlencoded({extended : true}));
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
-const listId = "6490073db7";
-const apiKey = "967c905bd5715c7e7990bd8a38fdbe1d-us1";
 
-// const listId = process.env.LIST_ID;
-// const apiKey = process.env.API_KEY;
+const listId = process.env.LIST_ID;
+const apiKey = process.env.API_KEY;
 console.log(listId, apiKey);
 mailchimp.setConfig({
   apiKey: apiKey,
@@ -293,9 +290,3 @@ app.listen(process.env.PORT || 3000,
         console.log("Server is running on Heroku or port 3000.");
     }
 );
-
-// API Key
-// 967c905bd5715c7e7990bd8a38fdbe1d-us1
-
-// List ID
-// 6490073db7
